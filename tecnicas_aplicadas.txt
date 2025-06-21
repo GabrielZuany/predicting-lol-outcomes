@@ -1,0 +1,73 @@
+- Decision Tree (DT)
+- K Nearest Neighbors (KNN)
+- Multi-layer Perceptron (MLP)
+- Random Forest (RF) 
+- Heterogeneous Boosting (HB)
+
+-> 3 rodadas de ciclos aninhados de validação e teste, com o ciclo interno de validação contendo 4 folds e o externo de teste com 10 folds
+
+---
+
+hiperparametros:
+Decision Tree: {'criterion': ['gini','entropy'], 'max_depth': [5, 10, 15, 25]}
+
+K Nearest Neighbors: {‘n_neighbors’:[1,3,5,7,9]}
+
+Multi Layer Perceptron: {
+    'hidden_layer_sizes': [(100,),(10,)],
+    'alpha': [0.0001, 0.005],
+    'learning_rate': ['constant','adaptive']}
+
+Random Forest:{
+    'n_estimators': [5, 10, 15, 25],
+    'max_depth': [10, None]}
+
+HeterogeneousBoosting: {‘n_estimators’: [5, 10, 15, 25, 50]}
+
+---
+O método   HB deve ser implementado. Os métodos    DT,  KNN,   MLP  e  RF  estão disponiveis no scikit-learn
+
+2. HB 
+O   classificador   Heterogeneous   Boosting   (HB)   é   um   combinado   de   classificadores 
+heterogêneos que usa como classificadores base: DT, Naive Bayes Gaussiano (NB), MLP e 
+KNN, sempre com valores default do sklearn para seus hiperparâmetros. O único parâmetro do 
+método HB é o n_estimators, que indica o número de classificadores base que comporão o 
+combinado. Por exemplo, se  n_estimators  é igual a 9, o combinado será composto por 9 
+classificadores. Para diferenciar os classificadores de mesmo tipo em um combinado, o primeiro 
+deles será treinado com a base de treino original e os demais serão treinados com uma base de 
+treino diferente, obtida a partir da base de treino original através de um método para seleção de 
+características. 
+O critério de decisão para classificar uma instância é a votação majoritária, ou seja, deve-
+se escolher a classe mais escolhida dentre os classificadores que compõem o combinado. Em 
+caso de empate, a classe escolhida deve ser a mais frequente na base de dados de treino original 
+dentre as que empataram na votação
+
+O pseudo código a seguir mostra como o HB é obtido a partir de uma base de dados de treino:
+- Obter e guardar a classe mais frequente da base de treino
+- Inicializar o vetor de pesos dos exemplos da base de treino com valor 1 para todos os exemplos
+- Repita  n_estimators vezes
+    - Selecionar com reposição os exemplos da base de treino utilizando o método da roleta 
+    - Para cada um dos métodos de classificação (NB, DT, MLP, KNN) faça
+        - Treinar o classificador com todos os exemplos selecionados
+        - Testar o classificador em todos os exemplos selecionados
+    - Fim-para
+    - Escolher o classificador com melhor desempenho para compor o combinado 
+        - Em caso de empate, usar a seguinte preferência: MLP, DT, KNN, NB
+        -   Dobrar   o   peso   dos   exemplos   classificados   de   forma   errônea   pelo   classificador 
+            incorporado ao combinado
+    - Fim-para
+- Fim-repita
+
+
+O pseudo código seguinte mostra como o HB é usado para classificar um exemplo:
+- Para cada um dos classificadores individuais do combinado faça
+    - Obter a classificação do exemplo usando o classificador individual e
+    armazenar a classe selecionada
+- Fim-para
+- Contar quantas vezes cada classe foi selecionada e obter a(s) mais votada(s)
+- Se mais de uma classe for a mais votada então
+    - Retornar a classe mais frequente na base de treino dentre as que 
+    empataram como mais votada
+- Senão
+    - Retornar a classe mais votada
+- Fim-se   
